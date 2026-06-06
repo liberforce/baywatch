@@ -25,11 +25,8 @@ def download_page(url: str) -> str:
 
 @dataclasses.dataclass
 class Config:
-    sender: str
-    recipient: str
-    password: str
-    username: str
-    subject: str
+    smtp: baywatch.notify.email.SmtpConfig
+    email: baywatch.notify.email.Email
     url: str
     polling_period_in_sec: int = 60
     update_ref_at_startup: bool = False
@@ -78,12 +75,18 @@ def has_changed(ref_data: str, new_data: str) -> bool:
 
 def load_config() -> Config:
     dotenv.load_dotenv()
-    return Config(
+    smtp_config = baywatch.notify.email.SmtpConfig(
         username=os.environ["SMTP_USERNAME"],
+        password=os.environ["SMTP_PASSWORD"],
+    )
+    email_config = baywatch.notify.email.Email(
         sender=os.environ["SMTP_SENDER"],
         recipient=os.environ["SMTP_RECIPIENT"],
         subject=os.environ["BAYWATCH_EMAIL_SUBJECT"],
-        password=os.environ["SMTP_PASSWORD"],
+    )
+    return Config(
+        smtp=smtp_config,
+        email=email_config,
         polling_period_in_sec=int(os.environ["BAYWATCH_POLLING_PERIOD_IN_SEC"]),
         url=os.environ["BAYWATCH_WATCHED_URL"],
     )
@@ -138,13 +141,10 @@ def watch(config: Config) -> None:
         if has_changed(config.ref_data, str_new_data):
             config.ref_data = str_new_data
             _, config.ref_digest = tag(str_new_data)
+            config.email.body = str_new_data
             baywatch.notify.email.send_email(
-                config.username,
-                config.password,
-                config.sender,
-                config.recipient,
-                subject=config.subject,
-                contents=str_new_data,
+                config.smtp,
+                config.email,
             )
 
         time.sleep(config.polling_period_in_sec)

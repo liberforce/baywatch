@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import dataclasses
 import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -8,26 +9,44 @@ from email.mime.text import MIMEText
 LOGGER = logging.getLogger(__name__)
 
 
+@dataclasses.dataclass
+class SmtpConfig:
+    password: str
+    username: str
+
+
+@dataclasses.dataclass
+class Email:
+    sender: str
+    recipient: str
+    subject: str
+    body: str = ""
+
+
 def send_email(
-    username: str,
-    password: str,
-    mail_from: str,
-    mail_to: str,
-    subject: str,
-    contents: str = "",
+    smtp: SmtpConfig,
+    email: Email,
 ):
-    LOGGER.info("Sending notification email from %s to %s", mail_from, mail_to)
+    LOGGER.info(
+        "Sending notification email from %s to %s",
+        email.sender,
+        email.recipient,
+    )
     msg = MIMEMultipart()
-    msg["From"] = mail_from
-    msg["To"] = mail_to
-    msg["Subject"] = subject
-    message = contents
+    msg["From"] = email.sender
+    msg["To"] = email.recipient
+    msg["Subject"] = email.subject
+    message = email.body
     # msg.attach(MIMEText(message, "plain"))
     msg.attach(MIMEText(message, "html"))
     mailserver = smtplib.SMTP("mail-eu.smtp2go.com", 587)
     mailserver.ehlo()
     mailserver.starttls()
     mailserver.ehlo()
-    mailserver.login(username, password)
-    mailserver.sendmail(mail_from, mail_to, msg.as_string())
+    mailserver.login(smtp.username, smtp.password)
+    mailserver.sendmail(
+        email.sender,
+        email.recipient,
+        msg.as_string(),
+    )
     mailserver.quit()
