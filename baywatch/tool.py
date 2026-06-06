@@ -55,7 +55,7 @@ class Config:
     url: str
     curl_escaped_cookie: str
     polling_period_in_sec: int = 60
-    update_ref_at_startup: bool = True
+    update_ref_at_startup: bool = False
     ref_digest: str = ""
     ref_data: str = ""
 
