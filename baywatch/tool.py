@@ -100,13 +100,12 @@ def init(config: Config) -> None:
     if config.update_ref_at_startup:
         ref_data = download_page(config.url)
         ref_data, ref_digest = tag(ref_data)
-        config.ref_data = normalize(ref_data)
-        config.ref_digest = ref_digest
     else:
         ref_data = load_page(REF_PAGE_PATH)
-        config.ref_data = ref_data
-        config.ref_digest = get_digest(ref_data)
+        ref_digest = get_digest(ref_data)
 
+    config.ref_data = normalize(ref_data)
+    config.ref_digest = ref_digest
 
 def compute_html_diff(old_page: str, new_page: str) -> str:
     differ = difflib.HtmlDiff()
