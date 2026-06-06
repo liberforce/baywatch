@@ -29,6 +29,7 @@ class Config:
     recipient: str
     password: str
     username: str
+    subject: str
     url: str
     polling_period_in_sec: int = 60
     update_ref_at_startup: bool = False
@@ -81,6 +82,7 @@ def load_config() -> Config:
         username=os.environ["SMTP_USERNAME"],
         sender=os.environ["SMTP_SENDER"],
         recipient=os.environ["SMTP_RECIPIENT"],
+        subject=os.environ["BAYWATCH_EMAIL_SUBJECT"],
         password=os.environ["SMTP_PASSWORD"],
         polling_period_in_sec=int(os.environ["BAYWATCH_POLLING_PERIOD_IN_SEC"]),
         url=os.environ["BAYWATCH_WATCHED_URL"],
@@ -108,6 +110,7 @@ def init(config: Config) -> None:
 
     config.ref_data = normalize(ref_data)
     config.ref_digest = ref_digest
+
 
 def compute_html_diff(old_page: str, new_page: str) -> str:
     differ = difflib.HtmlDiff()
@@ -140,7 +143,7 @@ def watch(config: Config) -> None:
                 config.password,
                 config.sender,
                 config.recipient,
-                subject="La page surveillée a été modifiée!",
+                subject=config.subject,
                 contents=str_new_data,
             )
 
