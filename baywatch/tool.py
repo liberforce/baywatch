@@ -18,7 +18,7 @@ REF_PAGE_PATH = "ref.html"
 NEW_PAGE_PATH = "page.html"
 
 
-def download_page(url: str, cookie: str = "") -> bytes:
+def download_page(url: str, cookie: str = "") -> str:
     LOGGER.info("Downloading watched page")
     cmd = f"""/usr/bin/curl '{url}' \
       --silent \
@@ -44,7 +44,7 @@ def download_page(url: str, cookie: str = "") -> bytes:
         cmd,
         shell=True,
     )
-    return output
+    return output.decode("utf-8")
 
 
 @dataclasses.dataclass
@@ -61,16 +61,16 @@ class Config:
     ref_data: str = ""
 
 
-def tag(data: bytes):
+def tag(data: str) -> tuple[str, str]:
     LOGGER.info("Updating reference page")
     save_page(data, REF_PAGE_PATH)
     return (data, get_digest(data))
 
 
-def save_page(data: bytes, filepath: str):
+def save_page(data: str, filepath: str):
     path = pathlib.Path(filepath)
 
-    with path.open("wb") as file:
+    with path.open("wt") as file:
         file.write(data)
 
 
@@ -83,9 +83,9 @@ def load_page(filepath: str) -> str:
     return contents
 
 
-def get_digest(contents: bytes) -> str:
+def get_digest(contents: str) -> str:
     hasher = hashlib.md5()
-    hasher.update(contents)
+    hasher.update(contents.encode("utf-8"))
     return hasher.hexdigest()
 
 
@@ -125,12 +125,12 @@ def init(config: Config) -> None:
     if config.update_ref_at_startup:
         ref_data = download_page(config.url, config.curl_escaped_cookie)
         ref_data, ref_digest = tag(ref_data)
-        config.ref_data = normalize(ref_data.decode("utf-8"))
+        config.ref_data = normalize(ref_data)
         config.ref_digest = ref_digest
     else:
         ref_data = load_page(REF_PAGE_PATH)
         config.ref_data = ref_data
-        config.ref_digest = get_digest(ref_data.encode("utf-8"))
+        config.ref_digest = get_digest(ref_data)
 
 
 def compute_html_diff(old_page: str, new_page: str) -> str:
@@ -153,13 +153,12 @@ def watch(config: Config) -> None:
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
-        bytes_new_data = download_page(config.url, config.curl_escaped_cookie)
-        str_new_data = bytes_new_data.decode("utf-8")
+        str_new_data = download_page(config.url, config.curl_escaped_cookie)
         str_new_data = normalize(str_new_data)
 
         if has_changed(config.ref_data, str_new_data):
             config.ref_data = str_new_data
-            _, config.ref_digest = tag(bytes_new_data)
+            _, config.ref_digest = tag(str_new_data)
             baywatch.notify.email.send_email(
                 config.username,
                 config.password,
