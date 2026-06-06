@@ -154,7 +154,6 @@ def main():
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
-        time.sleep(config.polling_period_in_sec)
         bytes_new_data = download_page(config.url, config.curl_escaped_cookie)
         str_new_data = bytes_new_data.decode("utf-8")
         str_new_data = normalize(str_new_data)
@@ -170,6 +169,8 @@ def main():
                 subject="La page surveillée a été modifiée!",
                 contents=str_new_data,
             )
+
+        time.sleep(config.polling_period_in_sec)
 
 
 if __name__ == "__main__":
