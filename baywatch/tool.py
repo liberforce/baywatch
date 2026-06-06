@@ -62,8 +62,19 @@ def get_digest(contents: str) -> str:
     return hasher.hexdigest()
 
 
-def has_changed(ref_data: str, new_data: str) -> bool:
-    changed = new_data != ref_data
+def normalize_content_field(data: str) -> str:
+    result = re.sub(
+        r' content=".*" ',
+        "",
+        data,
+        flags=re.MULTILINE,
+    )
+    return result
+
+
+def has_changed(ref_data: str, new_data: str, method=None) -> bool:
+    preprocessing_method = method if method else lambda x: x
+    changed = preprocessing_method(new_data) != preprocessing_method(ref_data)
 
     if changed:
         LOGGER.info("Page was updated")
@@ -113,7 +124,7 @@ def init(config: Config) -> None:
         ref_data = load_page(REF_PAGE_PATH)
         ref_digest = get_digest(ref_data)
 
-    config.ref_data = normalize(ref_data)
+    config.ref_data = ref_data
     config.ref_digest = ref_digest
 
 
@@ -123,24 +134,13 @@ def compute_html_diff(old_page: str, new_page: str) -> str:
     return table
 
 
-def normalize(data: str) -> str:
-    result = re.sub(
-        r' content=".*" ',
-        "",
-        data,
-        flags=re.MULTILINE,
-    )
-    return result
-
-
 def watch(config: Config) -> None:
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
         str_new_data = download_page(config.url)
-        str_new_data = normalize(str_new_data)
 
-        if has_changed(config.ref_data, str_new_data):
+        if has_changed(config.ref_data, str_new_data, normalize_content_field):
             config.ref_data = str_new_data
             _, config.ref_digest = tag(str_new_data)
             config.email.body = str_new_data
