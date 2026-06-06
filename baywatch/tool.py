@@ -17,6 +17,7 @@ LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"
 NEW_PAGE_PATH = "page.html"
 
+
 def download_page(url: str, cookie: str = "") -> bytes:
     LOGGER.info("Downloading watched page")
     cmd = f"""/usr/bin/curl '{url}' \
@@ -99,11 +100,9 @@ def has_changed(ref_data: str, new_data: str) -> bool:
     return changed
 
 
-def init():
-    LOGGER.info("Initializing...")
+def load_config() -> Config:
     dotenv.load_dotenv()
-
-    config = Config(
+    return Config(
         username=os.environ["SMTP_USERNAME"],
         sender=os.environ["SMTP_SENDER"],
         recipient=os.environ["SMTP_RECIPIENT"],
@@ -112,6 +111,16 @@ def init():
         polling_period_in_sec=int(os.environ["BAYWATCH_POLLING_PERIOD_IN_SEC"]),
         url=os.environ["BAYWATCH_WATCHED_URL"],
     )
+
+
+def init(config: Config) -> None:
+    logging.basicConfig(
+        # filename="baywatch.log",
+        format="%(asctime)s\t%(levelname)s\t%(message)s",
+        level=logging.DEBUG,
+    )
+
+    LOGGER.info("Initializing...")
 
     if config.update_ref_at_startup:
         ref_data = download_page(config.url, config.curl_escaped_cookie)
@@ -122,8 +131,6 @@ def init():
         ref_data = load_page(REF_PAGE_PATH)
         config.ref_data = ref_data
         config.ref_digest = get_digest(ref_data.encode("utf-8"))
-
-    return config
 
 
 def compute_html_diff(old_page: str, new_page: str) -> str:
@@ -142,15 +149,7 @@ def normalize(data: str) -> str:
     return result
 
 
-def main():
-    logging.basicConfig(
-        # filename="baywatch.log",
-        format="%(asctime)s\t%(levelname)s\t%(message)s",
-        level=logging.DEBUG,
-    )
-
-    config = init()
-
+def watch(config: Config) -> None:
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
@@ -171,6 +170,12 @@ def main():
             )
 
         time.sleep(config.polling_period_in_sec)
+
+
+def main() -> None:
+    config = load_config()
+    init(config)
+    watch(config)
 
 
 if __name__ == "__main__":
