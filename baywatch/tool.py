@@ -15,7 +15,6 @@ import baywatch.notify.email
 
 LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"
-NEW_PAGE_PATH = "page.html"
 
 
 def download_page(url: str) -> str:
