@@ -17,17 +17,15 @@ LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"
 NEW_PAGE_PATH = "page.html"
 
-
-def download_page(cookie: str = "") -> bytes:
+def download_page(url: str, cookie: str = "") -> bytes:
     LOGGER.info("Downloading watched page")
-    cmd = f"""/usr/bin/curl 'https://rdv.anct.gouv.fr/prendre_rdv?departement=&motif_name_with_location_type=renouvellement_de_recepisses_arrives_a_echeance_-public_office&public_link_organisation_id=2458' \
+    cmd = f"""/usr/bin/curl '{url}' \
       --silent \
       --compressed \
       -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0' \
       -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
       -H 'Accept-Language: fr-FR,fr;q=0.8,en-US;q=0.5,en;q=0.3' \
       -H 'Accept-Encoding: gzip, deflate, br, zstd' \
-      -H 'Referer: https://rdv.anct.gouv.fr/prendre_rdv?departement=&public_link_organisation_id=2458' \
       -H 'DNT: 1' \
       -H 'Connection: keep-alive' \
       -H 'Cookie: _rdv_sp_session={cookie}' \
@@ -54,6 +52,7 @@ class Config:
     recipient: str
     password: str
     username: str
+    url: str
     curl_escaped_cookie: str
     polling_period_in_sec: int = 60
     update_ref_at_startup: bool = True
@@ -110,10 +109,11 @@ def init():
         password=os.environ["SMTP_PASSWORD"],
         curl_escaped_cookie=os.environ["CURL_ESCAPED_COOKIE"],
         polling_period_in_sec=int(os.environ["BAYWATCH_POLLING_PERIOD_IN_SEC"]),
+        url=os.environ["BAYWATCH_WATCHED_URL"],
     )
 
     if config.update_ref_at_startup:
-        ref_data = download_page(config.curl_escaped_cookie)
+        ref_data = download_page(config.url, config.curl_escaped_cookie)
         ref_data, ref_digest = tag(ref_data)
         config.ref_data = normalize(ref_data.decode("utf-8"))
         config.ref_digest = ref_digest
@@ -154,7 +154,7 @@ def main():
 
     while 1:
         time.sleep(config.polling_period_in_sec)
-        bytes_new_data = download_page(config.curl_escaped_cookie)
+        bytes_new_data = download_page(config.url, config.curl_escaped_cookie)
         str_new_data = bytes_new_data.decode("utf-8")
         str_new_data = normalize(str_new_data)
 
