@@ -1,1 +1,1 @@
-Bot that watches a web page, and notifies when it changes.
+Web page watcher and change notifier.
