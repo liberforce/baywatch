@@ -55,6 +55,7 @@ class Config:
     password: str
     username: str
     curl_escaped_cookie: str
+    polling_period_in_sec: int = 60
     update_ref_at_startup: bool = True
     ref_digest: str = ""
     ref_data: str = ""
@@ -108,6 +109,7 @@ def init():
         recipient=os.environ["SMTP_RECIPIENT"],
         password=os.environ["SMTP_PASSWORD"],
         curl_escaped_cookie=os.environ["CURL_ESCAPED_COOKIE"],
+        polling_period_in_sec=int(os.environ["BAYWATCH_POLLING_PERIOD_IN_SEC"]),
     )
 
     if config.update_ref_at_startup:
@@ -148,10 +150,10 @@ def main():
 
     config = init()
 
-    LOGGER.info("Start polling...")
+    LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
-        time.sleep(30)
+        time.sleep(config.polling_period_in_sec)
         bytes_new_data = download_page(config.curl_escaped_cookie)
         str_new_data = bytes_new_data.decode("utf-8")
         str_new_data = normalize(str_new_data)
