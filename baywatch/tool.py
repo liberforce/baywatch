@@ -97,6 +97,9 @@ def init(config: Config) -> None:
 
     LOGGER.info("Initializing...")
 
+    if not pathlib.Path(REF_PAGE_PATH).exists():
+        config.update_ref_at_startup = True
+
     if config.update_ref_at_startup:
         ref_data = download_page(config.url)
         ref_data, ref_digest = tag(ref_data)
