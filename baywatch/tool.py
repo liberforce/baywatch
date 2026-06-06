@@ -6,10 +6,10 @@ import logging
 import os
 import pathlib
 import re
-import subprocess
 import time
 
 import dotenv
+import requests
 
 import baywatch.notify.email
 
@@ -18,33 +18,10 @@ REF_PAGE_PATH = "ref.html"
 NEW_PAGE_PATH = "page.html"
 
 
-def download_page(url: str, cookie: str = "") -> str:
+def download_page(url: str) -> str:
     LOGGER.info("Downloading watched page")
-    cmd = f"""/usr/bin/curl '{url}' \
-      --silent \
-      --compressed \
-      -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0' \
-      -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
-      -H 'Accept-Language: fr-FR,fr;q=0.8,en-US;q=0.5,en;q=0.3' \
-      -H 'Accept-Encoding: gzip, deflate, br, zstd' \
-      -H 'DNT: 1' \
-      -H 'Connection: keep-alive' \
-      -H 'Cookie: _rdv_sp_session={cookie}' \
-      -H 'Upgrade-Insecure-Requests: 1' \
-      -H 'Sec-Fetch-Dest: document' \
-      -H 'Sec-Fetch-Mode: navigate' \
-      -H 'Sec-Fetch-Site: same-origin' \
-      -H 'Sec-Fetch-User: ?1' \
-      -H 'If-None-Match: W/"17033ffc47c121edbba3be1c8006fc97"' \
-      -H 'Priority: u=0, i' \
-      -H 'TE: trailers'
-"""
-
-    output = subprocess.check_output(
-        cmd,
-        shell=True,
-    )
-    return output.decode("utf-8")
+    response = requests.get(url)
+    return response.text
 
 
 @dataclasses.dataclass
@@ -54,7 +31,6 @@ class Config:
     password: str
     username: str
     url: str
-    curl_escaped_cookie: str
     polling_period_in_sec: int = 60
     update_ref_at_startup: bool = False
     ref_digest: str = ""
@@ -107,7 +83,6 @@ def load_config() -> Config:
         sender=os.environ["SMTP_SENDER"],
         recipient=os.environ["SMTP_RECIPIENT"],
         password=os.environ["SMTP_PASSWORD"],
-        curl_escaped_cookie=os.environ["CURL_ESCAPED_COOKIE"],
         polling_period_in_sec=int(os.environ["BAYWATCH_POLLING_PERIOD_IN_SEC"]),
         url=os.environ["BAYWATCH_WATCHED_URL"],
     )
@@ -123,7 +98,7 @@ def init(config: Config) -> None:
     LOGGER.info("Initializing...")
 
     if config.update_ref_at_startup:
-        ref_data = download_page(config.url, config.curl_escaped_cookie)
+        ref_data = download_page(config.url)
         ref_data, ref_digest = tag(ref_data)
         config.ref_data = normalize(ref_data)
         config.ref_digest = ref_digest
@@ -153,7 +128,7 @@ def watch(config: Config) -> None:
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
-        str_new_data = download_page(config.url, config.curl_escaped_cookie)
+        str_new_data = download_page(config.url)
         str_new_data = normalize(str_new_data)
 
         if has_changed(config.ref_data, str_new_data):
