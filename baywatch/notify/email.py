@@ -10,12 +10,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
-class SmtpConfig:
-    password: str
-    username: str
-
-
-@dataclasses.dataclass
 class Email:
     sender: str
     recipient: str
@@ -23,30 +17,39 @@ class Email:
     body: str = ""
 
 
-def send_email(
-    smtp: SmtpConfig,
-    email: Email,
-):
-    LOGGER.info(
-        "Sending notification email from %s to %s",
-        email.sender,
-        email.recipient,
-    )
-    msg = MIMEMultipart()
-    msg["From"] = email.sender
-    msg["To"] = email.recipient
-    msg["Subject"] = email.subject
-    message = email.body
-    # msg.attach(MIMEText(message, "plain"))
-    msg.attach(MIMEText(message, "html"))
-    mailserver = smtplib.SMTP("mail-eu.smtp2go.com", 587)
-    mailserver.ehlo()
-    mailserver.starttls()
-    mailserver.ehlo()
-    mailserver.login(smtp.username, smtp.password)
-    mailserver.sendmail(
-        email.sender,
-        email.recipient,
-        msg.as_string(),
-    )
-    mailserver.quit()
+class Smtp:
+    @dataclasses.dataclass
+    class Config:
+        password: str
+        username: str
+
+    def __init__(self, config: Config):
+        self.config = config
+
+    def send_email(
+        self,
+        email: Email,
+    ) -> None:
+        LOGGER.info(
+            "Sending notification email from %s to %s",
+            email.sender,
+            email.recipient,
+        )
+        msg = MIMEMultipart()
+        msg["From"] = email.sender
+        msg["To"] = email.recipient
+        msg["Subject"] = email.subject
+        message = email.body
+        # msg.attach(MIMEText(message, "plain"))
+        msg.attach(MIMEText(message, "html"))
+        mailserver = smtplib.SMTP("mail-eu.smtp2go.com", 587)
+        mailserver.ehlo()
+        mailserver.starttls()
+        mailserver.ehlo()
+        mailserver.login(self.config.username, self.config.password)
+        mailserver.sendmail(
+            email.sender,
+            email.recipient,
+            msg.as_string(),
+        )
+        mailserver.quit()
