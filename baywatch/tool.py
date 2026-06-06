@@ -61,6 +61,7 @@ class Config:
 
 
 def tag(data: bytes):
+    LOGGER.info("Updating reference page")
     save_page(data, REF_PAGE_PATH)
     return (data, get_digest(data))
 
