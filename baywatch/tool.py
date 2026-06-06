@@ -103,10 +103,10 @@ def init():
     dotenv.load_dotenv()
 
     config = Config(
-        username=os.environ["USERNAME"],
-        sender=os.environ["SENDER"],
-        recipient=os.environ["EMAIL_RECIPIENT"],
-        password=os.environ["PASSWORD"],
+        username=os.environ["SMTP_USERNAME"],
+        sender=os.environ["SMTP_SENDER"],
+        recipient=os.environ["SMTP_RECIPIENT"],
+        password=os.environ["SMTP_PASSWORD"],
         curl_escaped_cookie=os.environ["CURL_ESCAPED_COOKIE"],
     )
 
