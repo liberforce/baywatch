@@ -1,4 +1,5 @@
 #! /bin/env python
+import typing
 import dataclasses
 import difflib
 import hashlib
@@ -34,7 +35,7 @@ class Config:
     ref_data: str = ""
 
 
-def tag(data: str) -> tuple[str, str]:
+def tag(data: str) -> typing.Tuple[str, str]:
     LOGGER.info("Updating reference page")
     save_page(data, REF_PAGE_PATH)
     return (data, get_digest(data))
