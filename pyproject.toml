@@ -15,4 +15,5 @@ dev = [
     "isort",
     "mypy",
     "ruff",
+    "types-requests>=2.21.0",
 ]
