@@ -1,5 +1,5 @@
 [project]
-name = "prefecture"
+name = "baywatch"
 version = "0.1.0"
 description = "Web page watcher and change notifier."
 readme = "README.md"
