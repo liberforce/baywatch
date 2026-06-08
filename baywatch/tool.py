@@ -1,6 +1,4 @@
 #! /bin/env python
-import sys
-import typing
 import dataclasses
 import difflib
 import hashlib
@@ -8,7 +6,9 @@ import logging
 import os
 import pathlib
 import re
+import sys
 import time
+import typing
 
 import dotenv
 import requests
@@ -21,8 +21,36 @@ REF_PAGE_PATH = "ref.html"
 
 def download_page(url: str) -> str:
     LOGGER.info("Downloading watched page")
-    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"}
-    response = requests.get(url, headers=headers, timeout=10)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+        "Host": "rdv.anct.gouv.fr",
+        "Accept-Language": "fr-FR,fr;q=0.8,en-US;q=0.5,en;q=0.3",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Cookie": "_rdv_sp_session=YNL81j3O22xRx5mVJGhm1%2B2nomprN0Y4icTTF8b%2Fl%2FuuYJJrHfz6I4GXoJEK8phoJoqKrsx4KJt7hrZuiHW6sgdERdG1wWEDo1I2UjJeEu5G2XUGOqwSCJFlWxgEPVKxH7uAP5f2AM0tjd3qo82PdT0EjDQZ37aPPPztpSX3h7iYS8maJfflmXCwDkFwlImZbD8qtzQJJrKVAOsB1sS9keGhQkdhmnDn6Z7ZZJ8P%2Bwd24YeitP3vfco64a2jIsX38E0wfeO7oMlQGsccTxj3yz4gYBhJu3GNGfgCpvOG2ZqTUivgbgXUEaS3KY4eY5In1DAUzQbavfPWv7hw13pAQQv7meoWDAHrv%2BrFj5utsr%2FHHXTah3DK048EqOG%2B5JcAzXpLAOqhQAlubIQhLDDExCv%2FoJdF1%2BGfJcXFT22aPDW3PKZH38eOgfRLkZHdoaLK%2FAk7REkZrwQMJpATJJawFyZV1JrCkEWqnTixxhITa1jSEvb6F50KKP0ip40j%2FqLFSyyc27rB%2BPD954QST3RNcK1Pz49mW2kiv7OzPNDxB2eREbmSzOkqQyjLo5tvIWbsTQB8IWYiB0gWtdUOVp%2B6csZ3%2BBfk0SpY7D%2Fflh77i0eKkrN5lKPVMoesZwvT--IluwvNH7LzkG3A8k--V55Q4ojBShI%2FUFNWHN5MgQ%3D%3D",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "If-None-Match": 'W/"cf06f868fd7e5f7c58cda361576bb715"',
+        "Priority": "u=0, i",
+        "TE": "trailers",
+    }
+
+    response = requests.get(
+        "https://rdv.anct.gouv.fr/prendre_rdv",
+        params={
+            "departement": "",
+            "motif_name_with_location_type": "renouvellement_de_recepisses_arrives_a_echeance_-public_office",
+            "public_link_organisation_id": "2458",
+        },
+        headers=headers,
+        timeout=10,
+    )
+
+    #response = requests.get(url, headers=headers, timeout=10)
     return response.text
 
 
@@ -156,6 +184,7 @@ def watch(config: Config) -> None:
         print(f"watched {n} time(s)", file=sys.stderr)
 
     print("exit", file=sys.stderr)
+
 
 def main() -> None:
     config = load_config()
