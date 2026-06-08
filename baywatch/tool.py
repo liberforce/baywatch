@@ -139,7 +139,7 @@ def watch(config: Config) -> None:
     print("watching")
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
-    for n in range(2):
+    for n in range(1):
         str_new_data = download_page(config.url)
 
         if has_changed(config.ref_data, str_new_data, None):
