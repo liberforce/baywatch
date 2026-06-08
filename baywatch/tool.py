@@ -21,7 +21,8 @@ REF_PAGE_PATH = "ref.html"
 
 def download_page(url: str) -> str:
     LOGGER.info("Downloading watched page")
-    response = requests.get(url)
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"}
+    response = requests.get(url, headers=headers, timeout=10)
     return response.text
 
 
