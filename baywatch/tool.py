@@ -1,4 +1,5 @@
 #! /bin/env python
+import sys
 import typing
 import dataclasses
 import difflib
@@ -136,7 +137,7 @@ def compute_html_diff(old_page: str, new_page: str) -> str:
 
 
 def watch(config: Config) -> None:
-    print("watching")
+    print("watching", file=sys.stderr)
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     for n in range(1):
@@ -146,14 +147,14 @@ def watch(config: Config) -> None:
             config.ref_data = str_new_data
             _, config.ref_digest = tag(str_new_data)
             config.email.body = str_new_data
-            print("sending")
+            print("sending", file=sys.stderr)
             config.smtp.send_email(config.email)
-            print("sent ?")
+            print("sent ?", file=sys.stderr)
 
         time.sleep(config.polling_period_in_sec)
-        print(f"watched {n} time(s)")
+        print(f"watched {n} time(s)", file=sys.stderr)
 
-    print("exit")
+    print("exit", file=sys.stderr)
 
 def main() -> None:
     config = load_config()
