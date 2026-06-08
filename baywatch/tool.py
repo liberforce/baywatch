@@ -136,19 +136,24 @@ def compute_html_diff(old_page: str, new_page: str) -> str:
 
 
 def watch(config: Config) -> None:
+    print("watching")
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
-    while 1:
+    for n in range(2):
         str_new_data = download_page(config.url)
 
-        if has_changed(config.ref_data, str_new_data, normalize_content_field):
+        if has_changed(config.ref_data, str_new_data, None):
             config.ref_data = str_new_data
             _, config.ref_digest = tag(str_new_data)
             config.email.body = str_new_data
+            print("sending")
             config.smtp.send_email(config.email)
+            print("sent ?")
 
         time.sleep(config.polling_period_in_sec)
+        print(f"watched {n} time(s)")
 
+    print("exit")
 
 def main() -> None:
     config = load_config()
