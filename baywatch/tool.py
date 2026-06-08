@@ -20,7 +20,7 @@ REF_PAGE_PATH = "ref.html"
 
 def download_page(url: str) -> str:
     LOGGER.info("Downloading watched page")
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
     return response.text
 
 
