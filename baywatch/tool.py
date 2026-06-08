@@ -108,7 +108,7 @@ def load_config() -> Config:
 
 def init(config: Config) -> None:
     logging.basicConfig(
-        # filename="baywatch.log",
+        filename="baywatch.log",
         format="%(asctime)s\t%(levelname)s\t%(message)s",
         level=logging.DEBUG,
     )
