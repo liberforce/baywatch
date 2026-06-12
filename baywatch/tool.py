@@ -1,13 +1,14 @@
 #! /bin/env python
-import typing
 import dataclasses
 import difflib
 import hashlib
 import logging
 import os
 import pathlib
+import random
 import re
 import time
+import typing
 
 import dotenv
 import requests
@@ -147,7 +148,13 @@ def watch(config: Config) -> None:
             config.email.body = str_new_data
             config.smtp.send_email(config.email)
 
-        time.sleep(config.polling_period_in_sec)
+        # Add some jitter to try to not be flagged as a bot
+        jitter_upper_bound = config.polling_period_in_sec // 10
+        jitter_lower_bound = -jitter_upper_bound
+        jitter = random.randrange(jitter_lower_bound, jitter_upper_bound)
+        nice_polling_period = config.polling_period_in_sec + jitter
+        LOGGER.info(f"Trying again in {nice_polling_period}s...")
+        time.sleep(nice_polling_period)
 
 
 def main() -> None:
