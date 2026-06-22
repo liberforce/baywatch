@@ -1,33 +1,20 @@
 #! /bin/env python
-import dataclasses
 import difflib
 import hashlib
 import logging
-import os
 import pathlib
 import random
 import re
 import time
 import typing
 
-import dotenv
 
-import baywatch.notify.email
 from baywatch.adapters.http import DataExtractor
+from baywatch.config import EnvConfigLoader
+from baywatch.config import Config
 
 LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"
-
-
-@dataclasses.dataclass
-class Config:
-    smtp: baywatch.notify.email.Smtp
-    email: baywatch.notify.email.Email
-    url: str
-    polling_period_in_sec: int = 60
-    update_ref_at_startup: bool = False
-    ref_digest: str = ""
-    ref_data: str = ""
 
 
 def tag(data: str) -> typing.Tuple[str, str]:
@@ -78,27 +65,6 @@ def has_changed(ref_data: str, new_data: str, method=None) -> bool:
         LOGGER.info("Page didn't change")
 
     return changed
-
-
-def load_config() -> Config:
-    dotenv.load_dotenv()
-    smtp = baywatch.notify.email.Smtp(
-        config=baywatch.notify.email.Smtp.Config(
-            username=os.environ["SMTP_USERNAME"],
-            password=os.environ["SMTP_PASSWORD"],
-        )
-    )
-    email_config = baywatch.notify.email.Email(
-        sender=os.environ["SMTP_SENDER"],
-        recipient=os.environ["SMTP_RECIPIENT"],
-        subject=os.environ["BAYWATCH_EMAIL_SUBJECT"],
-    )
-    return Config(
-        smtp=smtp,
-        email=email_config,
-        polling_period_in_sec=int(os.environ["BAYWATCH_POLLING_PERIOD_IN_SEC"]),
-        url=os.environ["BAYWATCH_WATCHED_URL"],
-    )
 
 
 def init(config: Config) -> None:
@@ -152,7 +118,8 @@ def watch(config: Config) -> None:
 
 
 def main() -> None:
-    config = load_config()
+    config_loader = EnvConfigLoader()
+    config = config_loader.load()
     init(config)
     watch(config)
 
