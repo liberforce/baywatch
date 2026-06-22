@@ -10,33 +10,17 @@ import typing
 
 
 from baywatch.adapters.http import DataExtractor
-from baywatch.config import EnvConfigLoader
-from baywatch.config import Config
+from baywatch.adapters.repositories.pages import PageRepository
+from baywatch.config import Config, EnvConfigLoader
 
 LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"
 
 
-def tag(data: str) -> typing.Tuple[str, str]:
+def tag(data: str, page_repo: PageRepository) -> typing.Tuple[str, str]:
     LOGGER.info("Updating reference page")
-    save_page(data, REF_PAGE_PATH)
+    page_repo.save(data, REF_PAGE_PATH)
     return (data, get_digest(data))
-
-
-def save_page(data: str, filepath: str):
-    path = pathlib.Path(filepath)
-
-    with path.open("wt") as file:
-        file.write(data)
-
-
-def load_page(filepath: str) -> str:
-    path = pathlib.Path(filepath)
-
-    with path.open("r") as file:
-        contents = file.read()
-
-    return contents
 
 
 def get_digest(contents: str) -> str:
@@ -75,15 +59,16 @@ def init(config: Config) -> None:
     )
 
     LOGGER.info("Initializing...")
+    page_repo = PageRepository()
 
     if not pathlib.Path(REF_PAGE_PATH).exists():
         config.update_ref_at_startup = True
 
     if config.update_ref_at_startup:
         ref_data = DataExtractor().extract(config.url)
-        ref_data, ref_digest = tag(ref_data)
+        ref_data, ref_digest = tag(ref_data, page_repo)
     else:
-        ref_data = load_page(REF_PAGE_PATH)
+        ref_data = page_repo.load(REF_PAGE_PATH)
         ref_digest = get_digest(ref_data)
 
     config.ref_data = ref_data
@@ -104,7 +89,10 @@ def watch(config: Config) -> None:
 
         if has_changed(config.ref_data, str_new_data, normalize_content_field):
             config.ref_data = str_new_data
-            _, config.ref_digest = tag(str_new_data)
+            _, config.ref_digest = tag(
+                str_new_data,
+                config.output_page_repository,
+            )
             config.email.body = str_new_data
             config.smtp.send_email(config.email)
 

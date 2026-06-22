@@ -3,6 +3,7 @@ import dotenv
 import os
 
 import baywatch.notify.email
+from baywatch.adapters.repositories.pages import PageRepository
 
 
 @dataclasses.dataclass
@@ -14,6 +15,7 @@ class Config:
     update_ref_at_startup: bool = False
     ref_digest: str = ""
     ref_data: str = ""
+    output_page_repository: PageRepository = PageRepository()
 
 
 class EnvConfigLoader:
