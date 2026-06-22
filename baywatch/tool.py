@@ -11,23 +11,12 @@ import time
 import typing
 
 import dotenv
-import requests
 
 import baywatch.notify.email
+from baywatch.adapters.http import DataExtractor
 
 LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"
-
-
-def download_page(url: str) -> str:
-    LOGGER.info("Downloading watched page")
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.8,en-US;q=0.5,en;q=0.3",
-    }
-    response = requests.get(url, headers=headers, timeout=10)
-    return response.text
 
 
 @dataclasses.dataclass
@@ -114,7 +103,7 @@ def load_config() -> Config:
 
 def init(config: Config) -> None:
     logging.basicConfig(
-        filename="baywatch.log",
+        # filename="baywatch.log",
         format="%(asctime)s\t%(levelname)s\t%(message)s",
         level=logging.DEBUG,
     )
@@ -125,7 +114,7 @@ def init(config: Config) -> None:
         config.update_ref_at_startup = True
 
     if config.update_ref_at_startup:
-        ref_data = download_page(config.url)
+        ref_data = DataExtractor().extract(config.url)
         ref_data, ref_digest = tag(ref_data)
     else:
         ref_data = load_page(REF_PAGE_PATH)
@@ -145,7 +134,7 @@ def watch(config: Config) -> None:
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
-        str_new_data = download_page(config.url)
+        str_new_data = DataExtractor().extract(config.url)
 
         if has_changed(config.ref_data, str_new_data, normalize_content_field):
             config.ref_data = str_new_data
