@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 @dataclasses.dataclass
 class Email:
     sender: str
-    recipient: str
+    recipients: list[str]
     subject: str
     body: str = ""
 
@@ -33,11 +33,11 @@ class Smtp:
         LOGGER.info(
             "Sending notification email from %s to %s",
             email.sender,
-            email.recipient,
+            ";".join(email.recipients),
         )
         msg = MIMEMultipart()
         msg["From"] = email.sender
-        msg["To"] = email.recipient
+        msg["To"] = ",".join(email.recipients)
         msg["Subject"] = email.subject
         message = email.body
         # msg.attach(MIMEText(message, "plain"))
@@ -49,7 +49,7 @@ class Smtp:
         mailserver.login(self.user.name, self.user.password)
         mailserver.sendmail(
             email.sender,
-            email.recipient,
+            email.recipients,
             msg.as_string(),
         )
         mailserver.quit()

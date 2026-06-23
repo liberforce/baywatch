@@ -35,9 +35,10 @@ class EnvConfigLoader:
                 password=os.environ["SMTP_PASSWORD"],
             )
         )
+        recipients = [r.strip() for r in os.environ["SMTP_RECIPIENTS"].split(";")]
         email_config = baywatch.notify.email.Email(
             sender=os.environ["SMTP_SENDER"],
-            recipient=os.environ["SMTP_RECIPIENT"],
+            recipients=recipients,
             subject=os.environ["BAYWATCH_EMAIL_SUBJECT"],
         )
         try:
