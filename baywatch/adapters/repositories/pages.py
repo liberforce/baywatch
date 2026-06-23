@@ -1,4 +1,5 @@
 import pathlib
+import typing
 
 from baywatch.domain.interfaces.normalizer import NormalizerInterface
 from baywatch.domain.models.page import Page
@@ -24,7 +25,7 @@ class NormalizedPage(Page):
     def __init__(
         self,
         page: Page,
-        normalizer: NormalizerInterface | None = None,
+        normalizer: typing.Optional[NormalizerInterface] = None,
     ):
         self._page = page
         self._normalizer = normalizer

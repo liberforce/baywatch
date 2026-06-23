@@ -71,7 +71,11 @@ class Bay:
                 tmp_config.polling_period_in_sec = 10
                 Bay(tmp_config).watch(n_times=2, actions=["send_email"])
 
-    def watch(self, n_times: int = -1, actions: list[str] | None = None) -> None:
+    def watch(
+        self,
+        n_times: int = -1,
+        actions: typing.Optional[list[str]] = None,
+    ) -> None:
         LOGGER.info(f"Start polling (period={self.config.polling_period_in_sec}s)...")
         if n_times < 0:
             while 1:
@@ -80,7 +84,7 @@ class Bay:
             for n in range(n_times):
                 self._watch(actions)
 
-    def _watch(self, actions: list[str] | None = None) -> None:
+    def _watch(self, actions: typing.Optional[list[str]] = None) -> None:
         new_page = Page(DataExtractor().extract(self.config.url))
 
         if self.has_changed(
