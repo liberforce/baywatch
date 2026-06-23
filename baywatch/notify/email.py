@@ -19,12 +19,12 @@ class Email:
 
 class Smtp:
     @dataclasses.dataclass
-    class Config:
+    class User:
+        name: str
         password: str
-        username: str
 
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self, user: User):
+        self.user = user
 
     def send_email(
         self,
@@ -46,7 +46,7 @@ class Smtp:
         mailserver.ehlo()
         mailserver.starttls()
         mailserver.ehlo()
-        mailserver.login(self.config.username, self.config.password)
+        mailserver.login(self.user.name, self.user.password)
         mailserver.sendmail(
             email.sender,
             email.recipient,
