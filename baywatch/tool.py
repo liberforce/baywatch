@@ -1,15 +1,15 @@
 #! /bin/env python
 import difflib
-import hashlib
 import logging
 import pathlib
 import random
-import re
 import time
 import typing
 
 
+from baywatch.domain.models.page import Page
 from baywatch.adapters.http import DataExtractor
+from baywatch.adapters.normalizers import make_normalizer
 from baywatch.adapters.repositories.pages import PageRepository
 from baywatch.config import Config, EnvConfigLoader
 
@@ -17,31 +17,15 @@ LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"
 
 
-def tag(data: str, page_repo: PageRepository) -> typing.Tuple[str, str]:
+def tag(page: Page, page_repo: PageRepository) -> typing.Tuple[str, str]:
     LOGGER.info("Updating reference page")
-    page_repo.save(data, REF_PAGE_PATH)
-    return (data, get_digest(data))
+    page_repo.save(page, REF_PAGE_PATH)
+    return (page.data, page.digest)
 
 
-def get_digest(contents: str) -> str:
-    hasher = hashlib.md5()
-    hasher.update(contents.encode("utf-8"))
-    return hasher.hexdigest()
-
-
-def normalize_content_field(data: str) -> str:
-    result = re.sub(
-        r' content=".*" ',
-        "",
-        data,
-        flags=re.MULTILINE,
-    )
-    return result
-
-
-def has_changed(ref_data: str, new_data: str, method=None) -> bool:
-    preprocessing_method = method if method else lambda x: x
-    changed = preprocessing_method(new_data) != preprocessing_method(ref_data)
+def has_changed(ref_page: Page, new_page: Page, normalizer=None) -> bool:
+    preprocessing_method = normalizer.normalize if normalizer else lambda x: x
+    changed = preprocessing_method(new_page) != preprocessing_method(ref_page)
 
     if changed:
         LOGGER.info("Page was updated")
@@ -65,14 +49,13 @@ def init(config: Config) -> None:
         config.update_ref_at_startup = True
 
     if config.update_ref_at_startup:
-        ref_data = DataExtractor().extract(config.url)
-        ref_data, ref_digest = tag(ref_data, page_repo)
+        ref_page = Page(DataExtractor().extract(config.url))
+        tag(ref_page, page_repo)
     else:
-        ref_data = page_repo.load(REF_PAGE_PATH)
-        ref_digest = get_digest(ref_data)
+        ref_page = page_repo.load(REF_PAGE_PATH)
 
-    config.ref_data = ref_data
-    config.ref_digest = ref_digest
+    config.ref_page = ref_page
+    config.normalizer = make_normalizer("prefecture")
 
 
 def compute_html_diff(old_page: str, new_page: str) -> str:
@@ -85,15 +68,19 @@ def watch(config: Config) -> None:
     LOGGER.info(f"Start polling (period={config.polling_period_in_sec}s)...")
 
     while 1:
-        str_new_data = DataExtractor().extract(config.url)
+        new_page = Page(DataExtractor().extract(config.url))
 
-        if has_changed(config.ref_data, str_new_data, normalize_content_field):
-            config.ref_data = str_new_data
-            _, config.ref_digest = tag(
-                str_new_data,
+        if has_changed(
+            config.ref_page,
+            new_page,
+            config.normalizer,
+        ):
+            tag(
+                new_page,
                 config.output_page_repository,
             )
-            config.email.body = str_new_data
+            config.ref_page = new_page
+            config.email.body = new_page.data
             config.smtp.send_email(config.email)
 
         # Add some jitter to try to not be flagged as a bot

@@ -4,6 +4,9 @@ import os
 
 import baywatch.notify.email
 from baywatch.adapters.repositories.pages import PageRepository
+from baywatch.adapters.normalizers.base import BaseNormalizer
+from baywatch.domain.models.page import Page
+from baywatch.domain.interfaces.normalizer import NormalizerInterface
 
 
 @dataclasses.dataclass
@@ -13,9 +16,9 @@ class Config:
     url: str
     polling_period_in_sec: int = 60
     update_ref_at_startup: bool = False
-    ref_digest: str = ""
-    ref_data: str = ""
+    ref_page: Page = Page("")
     output_page_repository: PageRepository = PageRepository()
+    normalizer: NormalizerInterface = BaseNormalizer()
 
 
 class EnvConfigLoader:
