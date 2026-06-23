@@ -6,12 +6,11 @@ import random
 import time
 import typing
 
-
-from baywatch.domain.models.page import Page
 from baywatch.adapters.http import DataExtractor
 from baywatch.adapters.normalizers import make_normalizer
 from baywatch.adapters.repositories.pages import PageRepository
 from baywatch.config import Config, EnvConfigLoader
+from baywatch.domain.models.page import Page
 
 LOGGER = logging.getLogger(__name__)
 REF_PAGE_PATH = "ref.html"

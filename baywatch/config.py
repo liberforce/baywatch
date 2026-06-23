@@ -1,14 +1,15 @@
 import dataclasses
-import dotenv
 import logging
 import os
 import sys
 
+import dotenv
+
 import baywatch.notify.email
-from baywatch.adapters.repositories.pages import PageRepository
 from baywatch.adapters.normalizers.base import BaseNormalizer
-from baywatch.domain.models.page import Page
+from baywatch.adapters.repositories.pages import PageRepository
 from baywatch.domain.interfaces.normalizer import NormalizerInterface
+from baywatch.domain.models.page import Page
 
 LOGGER = logging.getLogger(__name__)
 

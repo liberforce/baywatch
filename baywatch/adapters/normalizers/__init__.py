@@ -1,4 +1,5 @@
 from baywatch.domain.interfaces.normalizer import NormalizerInterface
+
 from .base import BaseNormalizer
 from .prefecture import PrefectureNormalizer
 

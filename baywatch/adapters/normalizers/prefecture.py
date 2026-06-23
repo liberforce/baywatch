@@ -1,6 +1,7 @@
 import re
 
 from baywatch.domain.models.page import Page
+
 from .base import NormalizerInterface
 
 

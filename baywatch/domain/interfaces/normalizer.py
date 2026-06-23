@@ -1,4 +1,5 @@
 import abc
+
 from baywatch.domain.models.page import Page
 
 

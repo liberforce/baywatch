@@ -1,5 +1,5 @@
-from baywatch.domain.models.page import Page
 from baywatch.domain.interfaces.normalizer import NormalizerInterface
+from baywatch.domain.models.page import Page
 
 
 class BaseNormalizer(NormalizerInterface):
