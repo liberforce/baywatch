@@ -38,8 +38,10 @@ class Bay:
             config.update_ref_at_startup = True
 
         if config.update_ref_at_startup:
-            ref_page = Page(DataExtractor().extract(config.url))
-            tag(ref_page, page_repo)
+            result = DataExtractor().extract(config.url)
+            if result is not None:
+                ref_page = Page(result)
+                tag(ref_page, page_repo)
         else:
             ref_page = page_repo.load(REF_PAGE_PATH)
 
@@ -85,7 +87,14 @@ class Bay:
                 self._watch(actions)
 
     def _watch(self, actions: typing.Optional[list[str]] = None) -> None:
-        new_page = Page(DataExtractor().extract(self.config.url))
+        result = DataExtractor().extract(self.config.url)
+
+        if result is None:
+            # Skip this one
+            LOGGER.warning("No data received. Skipped")
+            return
+
+        new_page = Page(result)
 
         if self.has_changed(
             self.config.ref_page,
