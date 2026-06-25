@@ -56,6 +56,15 @@ class Bay:
                 self.config.output_page_repository,
             )
         elif action == "send_email":
+            if "Malheureusement" in page.data:
+                self.config.email.subject = "Plus de rendez vous..."
+            elif "est disponible" in page.data:
+                self.config.email.subject = "Un rendez vous est disponible !"
+            elif "Facilitez la gestion et la prise de rendez‑vous dans votre administration" in page.data:
+                self.config.email.subject = "Page de rendez-vous"
+            else:
+                self.config.email.subject = "La page surveillée a été modifiée !"
+
             self.config.email.body = page.data
             self.config.smtp.send_email(self.config.email)
         elif action == "watch_child":
