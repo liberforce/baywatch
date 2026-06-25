@@ -39,6 +39,11 @@ class Smtp:
         msg["To"] = ",".join(email.recipients)
         msg["Subject"] = email.subject
         msg.add_alternative(email.body, subtype="html")
+        msg.add_attachment(
+            email.body,
+            subtype="html",
+            filename="page.html",
+        )
 
         with smtplib.SMTP("mail-eu.smtp2go.com", 587) as smtp:
             smtp.ehlo()
