@@ -26,7 +26,7 @@ def tag(page: Page, page_repo: PageRepository) -> typing.Tuple[str, str]:
 class Bay:
     def __init__(self, config: Config) -> None:
         logging.basicConfig(
-            # filename="baywatch.log",
+            filename=config.logfile,
             format="%(asctime)s\t%(levelname)s\t%(message)s",
             level=logging.DEBUG,
         )

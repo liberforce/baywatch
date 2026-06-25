@@ -2,6 +2,7 @@ import dataclasses
 import logging
 import os
 import sys
+import typing
 
 import dotenv
 
@@ -19,6 +20,7 @@ class Config:
     smtp: baywatch.notify.email.Smtp
     email: baywatch.notify.email.Email
     url: str
+    logfile: typing.Optional[str]
     polling_period_in_sec: int = 60
     update_ref_at_startup: bool = False
     ref_page: Page = Page("")
@@ -48,9 +50,12 @@ class EnvConfigLoader:
             LOGGER.error(f"Invalid polling period: {val}")
             sys.exit(f"Error: Invalid polling period: {val}")
 
+        logfile = os.environ.get("BAYWATCH_LOG_FILE")
+
         return Config(
             smtp=smtp,
             email=email_config,
             polling_period_in_sec=polling_period_in_sec,
             url=os.environ["BAYWATCH_WATCHED_URL"],
+            logfile=logfile if logfile else None,
         )
