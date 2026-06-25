@@ -112,8 +112,8 @@ class Bay:
         new_page: Page,
         normalizer=None,
     ) -> bool:
-        preprocessing_method = normalizer.normalize if normalizer else lambda x: x
-        changed = preprocessing_method(new_page) != preprocessing_method(ref_page)
+        process = normalizer.normalize if normalizer else lambda x: x
+        changed = process(new_page) != process(ref_page)
 
         if changed:
             LOGGER.info("Page was updated")
