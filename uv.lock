@@ -51,7 +51,7 @@ wheels = [
 
 [[package]]
 name = "baywatch"
-version = "0.2.0.dev2"
+version = "0.2.0.dev3"
 source = { virtual = "." }
 dependencies = [
     { name = "python-dotenv", version = "0.21.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.8'" },
