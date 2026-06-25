@@ -20,4 +20,10 @@ class PrefectureNormalizer(NormalizerInterface):
             result,
             flags=re.MULTILINE,
         )
+        result = re.sub(
+            r'"/assets/[^"]*"',
+            r'"/assets/"',
+            result,
+            flags=re.MULTILINE,
+        )
         return result
