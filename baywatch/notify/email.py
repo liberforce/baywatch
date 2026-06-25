@@ -3,8 +3,7 @@
 import dataclasses
 import logging
 import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from email.message import EmailMessage
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,21 +34,18 @@ class Smtp:
             email.sender,
             ";".join(email.recipients),
         )
-        msg = MIMEMultipart()
+        msg = EmailMessage()
         msg["From"] = email.sender
         msg["To"] = ",".join(email.recipients)
         msg["Subject"] = email.subject
-        message = email.body
-        # msg.attach(MIMEText(message, "plain"))
-        msg.attach(MIMEText(message, "html"))
-        mailserver = smtplib.SMTP("mail-eu.smtp2go.com", 587)
-        mailserver.ehlo()
-        mailserver.starttls()
-        mailserver.ehlo()
-        mailserver.login(self.user.name, self.user.password)
-        mailserver.sendmail(
-            email.sender,
-            email.recipients,
-            msg.as_string(),
-        )
-        mailserver.quit()
+        msg.add_alternative(email.body, subtype="html")
+
+        with smtplib.SMTP("mail-eu.smtp2go.com", 587) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.ehlo()
+            smtp.login(
+                self.user.name,
+                self.user.password,
+            )
+            smtp.send_message(msg)
